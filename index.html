@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-Time OpenStreetMap Route Planner for Kharagpur (IIT KGP) using A* Pathfinding Algorithm in C++ and JavaScript.">
+    <meta name="author" content="Sushmitha">
+    <title>Real-Time Route Planner | Kharagpur (A* Search)</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Clean Modern Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Full-Screen Map -->
+    <div id="map"></div>
+
+    <!-- Floating Clean Route Card -->
+    <div class="floating-panel" id="route-panel">
+        <!-- Brand Header -->
+        <div class="panel-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i data-lucide="compass"></i>
+                </div>
+                <div>
+                    <h1>Kharagpur Route Planner</h1>
+                    <span class="badge">A* Search Engine</span>
+                </div>
+            </div>
+            <a href="https://github.com/SUSHMITHASAME/Real-Time-Route-Planning-using-OpenStreetMap" target="_blank" rel="noopener noreferrer" class="icon-btn" title="View Source on GitHub">
+                <i data-lucide="github"></i>
+            </a>
+        </div>
+
+        <!-- Quick Presets for Kharagpur -->
+        <div class="presets-section">
+            <span class="section-label">Quick Presets (Kharagpur):</span>
+            <div class="preset-chips">
+                <button class="chip active" data-preset="main-to-techmkt">🏛️ Main Building ➔ Tech Mkt</button>
+                <button class="chip" data-preset="halls-to-main">🎓 Student Halls</button>
+                <button class="chip" data-preset="gymkhana-to-main">🏃 Gymkhana Grounds</button>
+                <button class="chip" data-preset="techmkt-to-purigate">🚉 Puri Gate / Hijli</button>
+            </div>
+        </div>
+
+        <!-- Point Pickers -->
+        <div class="points-container">
+            <div class="point-row">
+                <span class="point-dot dot-start"></span>
+                <div class="point-info">
+                    <span class="point-tag">Start Point (A)</span>
+                    <span class="point-desc" id="desc-start">IIT KGP Main Building</span>
+                </div>
+            </div>
+
+            <div class="point-connector"></div>
+
+            <div class="point-row">
+                <span class="point-dot dot-end"></span>
+                <div class="point-info">
+                    <span class="point-tag">Destination (B)</span>
+                    <span class="point-desc" id="desc-end">Technology Market (Tech Mkt)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric Results Card -->
+        <div class="results-card" id="results-card">
+            <div class="metric">
+                <span class="metric-label">Shortest Distance</span>
+                <span class="metric-value" id="res-distance">--</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric">
+                <span class="metric-label">Compute Time</span>
+                <span class="metric-value" id="res-time">&lt; 1 ms</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric">
+                <span class="metric-label">Nodes Explored</span>
+                <span class="metric-value" id="res-nodes">--</span>
+            </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="panel-actions">
+            <button class="btn btn-primary" id="btn-recompute">
+                <i data-lucide="navigation"></i>
+                <span>Find Route</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-animate" title="Visualize A* search expanding nodes">
+                <i data-lucide="play"></i>
+                <span>Animate A*</span>
+            </button>
+            <button class="btn btn-outline" id="btn-toggle-directions" title="View turn-by-turn directions">
+                <i data-lucide="list"></i>
+            </button>
+        </div>
+
+        <!-- Turn-by-Turn Collapsible Directions -->
+        <div class="directions-tray hidden" id="directions-tray">
+            <div class="tray-header">
+                <h3>Turn-by-Turn Route</h3>
+                <span id="step-count-badge">0 steps</span>
+            </div>
+            <div class="tray-content" id="directions-list">
+                <!-- Directions populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Bottom Helper Hint -->
+        <div class="map-hint">
+            <i data-lucide="mouse-pointer"></i>
+            <span>Tip: Drag pins or click anywhere in Kharagpur to re-route!</span>
+        </div>
+    </div>
+
+    <!-- Map Tile Switcher (Bottom-Right) -->
+    <div class="map-layer-control">
+        <button class="layer-btn active" id="layer-streets">Streets</button>
+        <button class="layer-btn" id="layer-satellite">Satellite</button>
+        <button class="layer-btn" id="layer-osm">Classic</button>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- OpenStreetMap Kharagpur Road Network Dataset -->
+    <script src="graph_data.js"></script>
+
+    <!-- Route Planner Engine -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+/* ==========================================================================
+   OSM Route Planner - Clean, Modern & Simple Style
+   ========================================================================== */
+
+:root {
+    --bg-card: rgba(15, 23, 42, 0.88);
+    --border-card: rgba(255, 255, 255, 0.12);
+    --primary: #4F46E5;
+    --primary-hover: #4338CA;
+    --primary-glow: rgba(79, 70, 229, 0.35);
+
+    --start-color: #10B981;
+    --end-color: #EF4444;
+
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Outfit', var(--font-sans);
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --shadow-panel: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 1px 1px var(--border-card);
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--font-sans);
+    background-color: #0f172a;
+    color: var(--text-main);
+}
+
+/* Map takes full screen */
+#map {
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
+
+/* Floating Card Panel (Google / Apple Maps style) */
+.floating-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 380px;
+    max-width: calc(100vw - 40px);
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    z-index: 1000;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+/* Scrollbar for tray */
+.floating-panel::-webkit-scrollbar,
+.tray-content::-webkit-scrollbar {
+    width: 5px;
+}
+.floating-panel::-webkit-scrollbar-thumb,
+.tray-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+/* Header */
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--primary), #06B6D4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.brand-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.brand h1 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #38BDF8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.icon-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-card);
+    color: var(--text-main);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: scale(1.05);
+}
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Presets Bar */
+.presets-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.section-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.preset-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-card);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chip:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.chip.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* Points Selector Container */
+.points-container {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.point-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.point-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dot-start {
+    background: var(--start-color);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.dot-end {
+    background: var(--end-color);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+.point-connector {
+    position: absolute;
+    left: 17px;
+    top: 24px;
+    bottom: 24px;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    border-left: 2px dashed rgba(255, 255, 255, 0.3);
+}
+
+.point-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.point-tag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.point-desc {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+/* Metric Results Card */
+.results-card {
+    background: rgba(79, 70, 229, 0.12);
+    border: 1px solid rgba(79, 70, 229, 0.3);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    text-align: center;
+}
+
+.metric-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.metric-value {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: #A5B4FC;
+    margin-top: 2px;
+}
+
+.metric-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Actions */
+.panel-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-primary {
+    flex: 1;
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-main);
+    border: 1px solid var(--border-card);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-card);
+    padding: 10px;
+}
+
+.btn-outline:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Directions Tray */
+.directions-tray {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 180px;
+    transition: all 0.3s ease;
+}
+
+.directions-tray.hidden {
+    display: none;
+}
+
+.tray-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tray-header h3 {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+#step-count-badge {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.tray-content {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.step-item {
+    font-size: 0.78rem;
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.step-street {
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.step-dist {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+/* Helper Hint */
+.map-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.map-hint svg {
+    width: 14px;
+    height: 14px;
+    color: #38BDF8;
+}
+
+/* Map Layer Control (Bottom-Right) */
+.map-layer-control {
+    position: absolute;
+    bottom: 24px;
+    right: 20px;
+    background: var(--bg-card);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    display: flex;
+    gap: 4px;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.layer-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.layer-btn:hover {
+    color: var(--text-main);
+}
+
+.layer-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Custom Marker Pins */
+.custom-pin-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pin-core {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    position: relative;
+    z-index: 2;
+}
+
+.pin-start {
+    background: var(--start-color);
+}
+
+.pin-end {
+    background: var(--end-color);
+}
+
+.pin-pulse {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    animation: ripple 1.6s infinite ease-out;
+    z-index: 1;
+}
+
+.pulse-start {
+    background: rgba(16, 185, 129, 0.5);
+}
+
+.pulse-end {
+    background: rgba(239, 68, 68, 0.5);
+}
+
+@keyframes ripple {
+    0% { transform: scale(0.6); opacity: 1; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+    .floating-panel {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-width: none;
+        padding: 14px;
+    }
+    .map-layer-control {
+        bottom: 16px;
+        right: 16px;
+    }
+}
