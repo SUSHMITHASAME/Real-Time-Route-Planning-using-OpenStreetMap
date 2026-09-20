@@ -23,6 +23,39 @@ document.addEventListener('DOMContentLoaded', () => {
         nodes: {}
     };
 
+    // ── Make the road graph bidirectional ─────────────────────────────────────
+    // OSM ways are stored in the direction they were digitised.  The parser may
+    // only add edges A→B but not B→A for two-way roads.  That causes asymmetric
+    // routing: swapping start & end can produce a different (longer) route.
+    // Fix: for every edge A→B that doesn't already have a matching B→A, add it.
+    (function makeBidirectional(g) {
+        const nodes = g.nodes;
+        // Collect every reverse edge we need to add
+        const toAdd = {}; // toAdd[nodeId] = array of [fromId, dist, street]
+        for (const [nodeId, node] of Object.entries(nodes)) {
+            for (const edge of (node.adj || [])) {
+                const [nbrId, dist, street] = edge;
+                const nbr = nodes[nbrId];
+                if (!nbr) continue;
+                // Check if reverse edge already exists
+                const hasReverse = (nbr.adj || []).some(e => e[0] === nodeId);
+                if (!hasReverse) {
+                    if (!toAdd[nbrId]) toAdd[nbrId] = [];
+                    toAdd[nbrId].push([nodeId, dist, street]);
+                }
+            }
+        }
+        // Add the missing reverse edges
+        for (const [nodeId, edges] of Object.entries(toAdd)) {
+            const node = nodes[nodeId];
+            if (!node.adj) node.adj = [];
+            for (const e of edges) node.adj.push(e);
+        }
+        const totalAdded = Object.values(toAdd).reduce((s, a) => s + a.length, 0);
+        if (totalAdded > 0) console.log(`[Graph] Added ${totalAdded} reverse edges → graph is now bidirectional`);
+    })(graphData);
+    // ─────────────────────────────────────────────────────────────────────────
+
     // State
     let map = null;
     let currentTileLayer = null;
