@@ -1,13 +1,13 @@
 /* ==========================================================================
-   OSM Route Planner - Clean, Modern & Simple Style
+   OSM Route Planner - Clean, Modern & Rotatable Map Style
    ========================================================================== */
 
 :root {
-    --bg-card: rgba(15, 23, 42, 0.88);
-    --border-card: rgba(255, 255, 255, 0.12);
+    --bg-card: rgba(15, 23, 42, 0.90);
+    --border-card: rgba(255, 255, 255, 0.14);
     --primary: #4F46E5;
     --primary-hover: #4338CA;
-    --primary-glow: rgba(79, 70, 229, 0.35);
+    --primary-glow: rgba(79, 70, 229, 0.4);
 
     --start-color: #10B981;
     --end-color: #EF4444;
@@ -39,14 +39,28 @@ html, body {
     color: var(--text-main);
 }
 
-/* Map takes full screen */
-#map {
+/* Map Viewport & Smooth Rotation Container */
+#map-viewport {
+    position: absolute;
+    inset: 0;
     width: 100vw;
     height: 100vh;
+    overflow: hidden;
+    background: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#map {
+    width: 140vw;
+    height: 140vh;
+    transform-origin: center center;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
     z-index: 1;
 }
 
-/* Floating Card Panel (Google / Apple Maps style) */
+/* Floating Card Panel */
 .floating-panel {
     position: absolute;
     top: 20px;
@@ -68,7 +82,7 @@ html, body {
     overflow-y: auto;
 }
 
-/* Scrollbar for tray */
+/* Scrollbar */
 .floating-panel::-webkit-scrollbar,
 .tray-content::-webkit-scrollbar {
     width: 5px;
@@ -428,7 +442,102 @@ html, body {
     color: #38BDF8;
 }
 
-/* Map Layer Control (Bottom-Right) */
+/* Map Rotater & Compass Widget (Top-Right) */
+.map-rotater-control {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--bg-card);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-full, 30px);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.rot-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-card);
+    color: var(--text-main);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rot-btn:hover {
+    background: var(--primary);
+    transform: scale(1.08);
+}
+
+.rot-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.compass-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compass-dial {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 10px var(--primary-glow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.compass-needle-n {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #EF4444;
+    line-height: 1;
+}
+
+.compass-arrow {
+    font-size: 0.5rem;
+    color: #EF4444;
+    line-height: 1;
+    margin: -1px 0;
+}
+
+.compass-needle-s {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #94A3B8;
+    line-height: 1;
+}
+
+.rot-deg-badge {
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #38BDF8;
+    min-width: 32px;
+    text-align: center;
+}
+
+/* Map Layer Switcher (Bottom-Right) */
 .map-layer-control {
     position: absolute;
     bottom: 24px;
@@ -522,6 +631,11 @@ html, body {
         width: auto;
         max-width: none;
         padding: 14px;
+    }
+    .map-rotater-control {
+        top: 10px;
+        right: 10px;
+        padding: 4px 8px;
     }
     .map-layer-control {
         bottom: 16px;

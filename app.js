@@ -1,5 +1,6 @@
 /**
  * OSM Route Planner - Kharagpur (IIT KGP & Surrounding Area)
+ * Clean Layout with Map Rotation & 100% Free Tile Providers
  * Author: Sushmitha
  */
 
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let exploredNodesLayer = null;
     let isAnimating = false;
     let animationTimer = null;
+    let currentRotation = 0; // Map rotation angle in degrees
 
     // Default start: IIT KGP Main Building, end: Tech Market
     let startCoord = { x: 49.1, y: 48.4, lat: 22.31953, lon: 87.30974 };
@@ -39,6 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCalculatedRoute = null;
 
     // UI elements
+    const mapElement = document.getElementById('map');
+    const compassDial = document.getElementById('compass-dial');
+    const rotDegDisplay = document.getElementById('rot-deg-display');
+    const btnRotLeft = document.getElementById('btn-rot-left');
+    const btnRotRight = document.getElementById('btn-rot-right');
+    const btnResetNorth = document.getElementById('btn-reset-north');
+
     const descStart = document.getElementById('desc-start');
     const descEnd = document.getElementById('desc-end');
     const resDistance = document.getElementById('res-distance');
@@ -81,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // -------------------------------------------------------------
-    // 1. Map Initialization (Kharagpur, West Bengal)
+    // 1. Map Initialization (100% Free, NO API Keys)
     // -------------------------------------------------------------
     function initMap() {
         const bounds = graphData.bounds || DEFAULT_BOUNDS;
@@ -93,24 +102,24 @@ document.addEventListener('DOMContentLoaded', () => {
             zoomControl: false
         });
 
-        L.control.zoom({ position: 'topright' }).addTo(map);
+        L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-        // Free clean tiles without watermarks or API keys
+        // 100% Free tile providers with ZERO watermarks
         const tileProviders = {
-            streets: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+            osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+            topo: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
         };
 
-        currentTileLayer = L.tileLayer(tileProviders.streets, {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        currentTileLayer = L.tileLayer(tileProviders.osm, {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19
         }).addTo(map);
 
         // Layer Switcher
-        document.getElementById('layer-streets').addEventListener('click', (e) => switchTiles('streets', e.target));
-        document.getElementById('layer-satellite').addEventListener('click', (e) => switchTiles('satellite', e.target));
         document.getElementById('layer-osm').addEventListener('click', (e) => switchTiles('osm', e.target));
+        document.getElementById('layer-satellite').addEventListener('click', (e) => switchTiles('satellite', e.target));
+        document.getElementById('layer-topo').addEventListener('click', (e) => switchTiles('topo', e.target));
 
         function switchTiles(type, btnElement) {
             document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
@@ -210,8 +219,35 @@ document.addEventListener('DOMContentLoaded', () => {
             computeRoute(false);
         });
 
+        // Initialize Rotator Controls
+        initRotator();
+
         // Compute initial default route
         setTimeout(() => computeRoute(false), 200);
+    }
+
+    // -------------------------------------------------------------
+    // 2. Map Rotation & Compass Logic
+    // -------------------------------------------------------------
+    function initRotator() {
+        function updateRotation(degrees) {
+            currentRotation = (degrees % 360 + 360) % 360;
+            mapElement.style.transform = `rotate(${currentRotation}deg)`;
+            compassDial.style.transform = `rotate(${currentRotation}deg)`;
+            rotDegDisplay.textContent = `${currentRotation}°`;
+        }
+
+        btnRotLeft.addEventListener('click', () => {
+            updateRotation(currentRotation - 15);
+        });
+
+        btnRotRight.addEventListener('click', () => {
+            updateRotation(currentRotation + 15);
+        });
+
+        btnResetNorth.addEventListener('click', () => {
+            updateRotation(0);
+        });
     }
 
     function clearActivePresets() {
@@ -246,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 2. A* Pathfinding Engine
+    // 3. A* Pathfinding Engine
     // -------------------------------------------------------------
     function haversine(lat1, lon1, lat2, lon2) {
         const R = 6371000;
@@ -384,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 3. Render Route & UI
+    // 4. Render Route & UI
     // -------------------------------------------------------------
     function computeRoute(animate = false) {
         if (isAnimating) stopAnimation();
@@ -513,7 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 4. Presets and Events
+    // 5. Presets and Events
     // -------------------------------------------------------------
     presetChips.forEach(chip => {
         chip.addEventListener('click', () => {

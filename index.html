@@ -22,8 +22,10 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Full-Screen Map -->
-    <div id="map"></div>
+    <!-- Map Outer Viewport Container for Rotation -->
+    <div id="map-viewport">
+        <div id="map"></div>
+    </div>
 
     <!-- Floating Clean Route Card -->
     <div class="floating-panel" id="route-panel">
@@ -126,11 +128,29 @@
         </div>
     </div>
 
-    <!-- Map Tile Switcher (Bottom-Right) -->
+    <!-- Map Rotater & Compass Control (Top-Right) -->
+    <div class="map-rotater-control">
+        <button class="rot-btn" id="btn-rot-left" title="Rotate Left 15°">
+            <i data-lucide="rotate-ccw"></i>
+        </button>
+        <button class="compass-btn" id="btn-reset-north" title="Click to Reset North (0°)">
+            <div class="compass-dial" id="compass-dial">
+                <span class="compass-needle-n">N</span>
+                <span class="compass-arrow">▲</span>
+                <span class="compass-needle-s">S</span>
+            </div>
+        </button>
+        <button class="rot-btn" id="btn-rot-right" title="Rotate Right 15°">
+            <i data-lucide="rotate-cw"></i>
+        </button>
+        <span class="rot-deg-badge" id="rot-deg-display">0°</span>
+    </div>
+
+    <!-- Map Layer Switcher (Bottom-Right) - 100% Free, NO API Keys -->
     <div class="map-layer-control">
-        <button class="layer-btn active" id="layer-streets">Streets</button>
+        <button class="layer-btn active" id="layer-osm">OpenStreetMap</button>
         <button class="layer-btn" id="layer-satellite">Satellite</button>
-        <button class="layer-btn" id="layer-osm">Classic</button>
+        <button class="layer-btn" id="layer-topo">Terrain</button>
     </div>
 
     <!-- Leaflet JS -->
