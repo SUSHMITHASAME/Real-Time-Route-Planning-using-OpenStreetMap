@@ -294,23 +294,80 @@ document.addEventListener('DOMContentLoaded', () => {
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    // Project point (px, py) onto segment (ax,ay)-(bx,by), return t in [0,1]
+    function projectOntoSegment(px, py, ax, ay, bx, by) {
+        const dx = bx - ax, dy = by - ay;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) return 0;
+        return Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lenSq));
+    }
+
+    // Find the node of the nearest road EDGE to the given normalised coordinate.
+    // This avoids snapping to a distant node on the other side of a building.
     function findClosestNode(xNorm, yNorm) {
-        const nodeEntries = Object.entries(graphData.nodes);
+        const nodes = graphData.nodes;
+        const nodeEntries = Object.entries(nodes);
         if (nodeEntries.length === 0) return null;
 
-        let closestId = null;
-        let minSqDist = Infinity;
+        let bestId   = null;
+        let bestDist = Infinity;
+
+        // Scale factor to make x/y distances comparable in metres
+        // (lon degrees are shorter than lat degrees at this latitude)
+        const latScale = 111320;          // metres per degree lat
+        const lonScale = 111320 * Math.cos(22.32 * Math.PI / 180); // ~KGP latitude
+        const bounds   = graphData.bounds || DEFAULT_BOUNDS;
+        const latSpan  = bounds.maxlat - bounds.minlat;
+        const lonSpan  = bounds.maxlon - bounds.minlon;
+
+        // Convert normalised [0-1] → metres offset (for distance comparison only)
+        const pmx = xNorm * lonSpan * lonScale;
+        const pmy = yNorm * latSpan * latScale;
+
         for (let i = 0; i < nodeEntries.length; i++) {
             const [id, node] = nodeEntries[i];
-            const dx = node.x - xNorm;
-            const dy = node.y - yNorm;
-            const sqDist = dx * dx + dy * dy;
-            if (sqDist < minSqDist) {
-                minSqDist = sqDist;
-                closestId = id;
+            const adj = node.adj || [];
+
+            // Check every outgoing edge from this node
+            for (let j = 0; j < adj.length; j++) {
+                const neighbourId = adj[j][0];
+                const nb = nodes[neighbourId];
+                if (!nb) continue;
+
+                const ax = node.x * lonSpan * lonScale;
+                const ay = node.y * latSpan * latScale;
+                const bx = nb.x * lonSpan * lonScale;
+                const by = nb.y * latSpan * latScale;
+
+                const t  = projectOntoSegment(pmx, pmy, ax, ay, bx, by);
+                // Point on segment closest to P
+                const cx = ax + t * (bx - ax);
+                const cy = ay + t * (by - ay);
+                const dd = (pmx - cx) * (pmx - cx) + (pmy - cy) * (pmy - cy);
+
+                if (dd < bestDist) {
+                    bestDist = dd;
+                    // Pick whichever endpoint is closer to the projection point
+                    const dA = (pmx - ax) * (pmx - ax) + (pmy - ay) * (pmy - ay);
+                    const dB = (pmx - bx) * (pmx - bx) + (pmy - by) * (pmy - by);
+                    bestId = dA <= dB ? id : neighbourId;
+                }
             }
         }
-        return closestId;
+
+        // Fall back to plain nearest-node if no edges found
+        if (!bestId) {
+            let minSqDist = Infinity;
+            for (let i = 0; i < nodeEntries.length; i++) {
+                const [id, node] = nodeEntries[i];
+                const dx = node.x - xNorm;
+                const dy = node.y - yNorm;
+                const sq = dx * dx + dy * dy;
+                if (sq < minSqDist) { minSqDist = sq; bestId = id; }
+            }
+        }
+
+        return bestId;
     }
 
     function runAStar() {
@@ -425,6 +482,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function computeRoute(animate = false) {
         if (isAnimating) stopAnimation();
         exploredNodesLayer.clearLayers();
+
+        // ── Short-distance direct-path shortcut ──────────────────────────────
+        // If start and end are within 120 m of each other, drawing a road-network
+        // route that loops around a building is misleading. Show a straight line.
+        const directDist = haversine(
+            startCoord.lat, startCoord.lon,
+            endCoord.lat,   endCoord.lon
+        );
+        if (directDist < 120) {
+            if (routePolyline) map.removeLayer(routePolyline);
+            routePolyline = L.polyline(
+                [[startCoord.lat, startCoord.lon], [endCoord.lat, endCoord.lon]],
+                { color: '#4F46E5', weight: 5, opacity: 0.95,
+                  dashArray: '8 6', lineJoin: 'round', lineCap: 'round' }
+            ).addTo(map);
+            const d = Math.round(directDist);
+            resDistance.textContent = `${d} m`;
+            resTime.textContent     = '< 1 ms';
+            resNodes.textContent    = 0;
+            directionsList.innerHTML = `<p style="font-size:0.75rem;color:#94a3b8;padding:8px;">📍 Direct path (${d} m straight line — points are very close together)</p>`;
+            stepCountBadge.textContent = '1 step';
+            currentCalculatedRoute = null;
+            map.fitBounds(routePolyline.getBounds(), { padding: [80, 80], maxZoom: 18 });
+            return;
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         const result = runAStar();
         currentCalculatedRoute = result;
